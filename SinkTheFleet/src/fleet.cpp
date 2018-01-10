@@ -116,6 +116,9 @@ void allocMem(Player players[], char size)
 					// set the pointers to NULL, then allocate the
 					// memory for each row in each grid
 
+					// new code -- GB 1/9/18
+					players[i].m_gameGrid[whichGrid][j] = nullptr;
+					players[i].m_gameGrid[whichGrid][j] = new Ship[numberOfCols];
 
 					//--------------------------------------------------
 					for (short k = 0; k < numberOfCols; ++k)
