@@ -17,18 +17,18 @@
 //	  endBox() 
 //----------------------------------------------------------------------------
 #include "fleet.h"
-//---------------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 // YOU ARE RESPONSIBLE FOR CORRECT HEADERS -- one for each function
 // include the definitions for each of the non-template functions
 //    declared in fleet.h 
-//---------------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 
 const char* shipNames[SHIP_SIZE_ARRAYSIZE] = 
 	{"No Ship", "Mine Sweeper", "Submarine", "Frigate",
 		"Battleship", "Aircraft Carrier"};
 const int TOTALPIECES = 17; // total pieces in all ships
 
-//---------------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 // Function:	setShipInfo()
 // Title:		Set ShipInfo
 // Description:
@@ -58,14 +58,14 @@ const int TOTALPIECES = 17; // total pieces in all ships
 // History Log:
 //		12/20/05 PB completed v 0.1
 //   
-//---------------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void setShipInfo(ShipInfo * shipInfoPtr, Ship name, Direction orientation,
 	unsigned short row, unsigned short col)
 {
 	
 } 
 
-//---------------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 // Function:	allocMem()
 // Title:		Allocate Memory
 // Description:
@@ -95,7 +95,7 @@ void setShipInfo(ShipInfo * shipInfoPtr, Ship name, Direction orientation,
 //		9/13/06  PB completed v 1.01
 //		1/20/17  PB completed v 1.02
 //
-//---------------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 void allocMem(Player players[], char size)
 {
 	short numberOfRows = (toupper(size) == 'L') ? LARGEROWS : SMALLROWS;
@@ -140,12 +140,12 @@ void allocMem(Player players[], char size)
 	}
 }
 
-//---------------------------------------------------------------------------------
+//----------------------------------------------------------------------------
 // Function:	deleteMem()
 // Title:		Delete Memory
 // Description:
 //		Safely deletes memory for grids
-// Programmer:
+// Programmer: Gabe Blumenthal and Ethan Lindemann-Michael
 // 
 // Date:	12/20/05
 //
@@ -171,9 +171,29 @@ void allocMem(Player players[], char size)
 void deleteMem(Player players[], char size) 
 {
 	short numberOfRows = (toupper(size) == 'L') ? LARGEROWS : SMALLROWS;
-	// your code goes here ...
-	// delete[] in reverse order of allocMem()
-	// be sure to check if the memory was allocated (!nullptr) BEFORE deleting
+	
+	// new code GB/ELM 1/11/18
+	for (int whichGrid = 0; whichGrid < NUMPLAYERS; whichGrid++)
+	{
+		for (short i = 0; i < NUMPLAYERS; ++i)
+		{
+			// Make sure grid contains a ptr
+			if (players[i].m_gameGrid[whichGrid] != nullptr) 
+			{
+				for (short r = 0; r < numberOfRows; ++r)
+				{
+					// delete every row in grid
+					if (players[i].m_gameGrid[whichGrid][r] != nullptr)
+					{
+						delete[] players[i].m_gameGrid[whichGrid][r];
+					}
+				}
+				delete[] players[i].m_gameGrid[whichGrid];
+			}
+		}
+
+	}
+	
 
 }
 
