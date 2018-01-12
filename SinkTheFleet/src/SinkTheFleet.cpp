@@ -102,11 +102,12 @@ int main(void)
 		while(!gameOver)
 		{
 			// YOUR CODE GOES HERE ....
-
+			gameOver = true;
 
 			whichPlayer = !whichPlayer;  // switch players
 		}
 		// clean up memory ...
+		deleteMem(game, gridSize);
 
 		again = safeChoice("Would you like to play again?", 'Y', 'N');
 	}
