@@ -93,6 +93,7 @@ int main(void)
 		
 		// YOUR CODE GOES HERE ...
 
+
 		for(whichPlayer = 0; whichPlayer < NUMPLAYERS; whichPlayer++)
 		{
 			// enter grid files or let users enter ships
@@ -104,6 +105,8 @@ int main(void)
 			// YOUR CODE GOES HERE ....
 			gameOver = true;
 
+			// new code GB 1/16/18
+			printGrid(cout, *game->m_gameGrid,gridSize);
 			whichPlayer = !whichPlayer;  // switch players
 		}
 		// clean up memory ...
