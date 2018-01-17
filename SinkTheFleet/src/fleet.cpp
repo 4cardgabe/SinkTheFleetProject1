@@ -384,16 +384,17 @@ void setships(Player players[], char size, short whichPlayer)
 		system("cls");
 		printGrid(cout, players[whichPlayer].m_gameGrid[0], size);
 		outSStream.str("");
-		outSStream << "Player " << whichPlayer + 1 << " Enter "
-			<< shipNames[j] << " orientation";
+		outSStream << "Player " << whichPlayer + 1 << " Enter " << shipNames[j] << " orientation";
+
+		// Get ship orientation from 
 		input =  safeChoice(outSStream.str(), 'V', 'H');
-		players[whichPlayer].m_ships[j].m_orientation
-			= (input == 'V') ? VERTICAL : HORIZONTAL;
-		cout << "Player " << whichPlayer + 1 << " Enter " << shipNames[j] <<
-			" bow coordinates <row letter><col #>: ";
+		players[whichPlayer].m_ships[j].m_orientation = (input == 'V') ? VERTICAL : HORIZONTAL;
+
+		// Get bow location from user
+		cout << "Player " << whichPlayer + 1 << " Enter " << shipNames[j] << " bow coordinates <row letter><col #>: ";
 		players[whichPlayer].m_ships[j].m_bowLocation = location = getCoord(cin, size);
 
-		// if ok
+		// Check if cell is valid
 		if(!isValidLocation(players[whichPlayer], j, size))
 		{
 			cout << "invalid location. Press <enter>" ;
@@ -401,11 +402,22 @@ void setships(Player players[], char size, short whichPlayer)
 			j--; // redo
 			continue;
 		}
-		// YOUR CODE GOES HERE ...
 
+		// Place the ship in the grid
+		Ship** shipGrid = players[whichPlayer].m_gameGrid[0];
+		ShipInfo ship = players[whichPlayer].m_ships[j];
 
-
-
+		for (int i = 0; i < shipSize[ship.m_name]; i++) 
+		{
+			if (ship.m_orientation == VERTICAL) 
+			{
+				shipGrid[ship.m_bowLocation.m_row + i][ship.m_bowLocation.m_col];
+			}
+			else if (ship.m_orientation == HORIZONTAL) 
+			{
+				shipGrid[ship.m_bowLocation.m_row][ship.m_bowLocation.m_col + 1];
+			}
+		}
 	} // end for j
 	save = safeChoice("\nSave starting grid?", 'Y', 'N');
 	if(save == 'Y')
