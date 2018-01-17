@@ -308,10 +308,25 @@ void printGrid(ostream& sout, Ship** grid, char size)
 			//sout << HORIZ << HORIZ << HORIZ << VERT;
 		}
 		sout << endl;
+		if (LARGEROWS) {
+			sout << HORIZ;
+			printLargeRow(sout);
+		}
+		else if (SMALLROWS)
+			sout << "________" << endl;
+		
+
 	}
 
 	// use printShip for each element in the grid
 } 
+
+void printLargeRow(ostream& sout) {
+	for (int i = 0; i < 24; i++) {
+		sout << HORIZ << HORIZ << CR;
+	}
+	sout << endl;
+}
 
 //---------------------------------------------------------------------------------
 // Function:	initializePlayer()
