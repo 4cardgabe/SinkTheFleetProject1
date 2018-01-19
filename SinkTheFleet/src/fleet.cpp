@@ -446,7 +446,8 @@ void setships(Player players[], char size, short whichPlayer)
 				shipGrid[ship.m_bowLocation.m_row][ship.m_bowLocation.m_col + 1];
 			}
 		}
-	} // end for j
+	} 
+	// Save the grid
 	save = safeChoice("\nSave starting grid?", 'Y', 'N');
 	if(save == 'Y')
 		saveGrid(players, whichPlayer, size);
@@ -662,9 +663,22 @@ bool isValidLocation(const Player& player, short shipNumber, char size)
 {
 	short numberOfRows = (toupper(size) == 'L') ? LARGEROWS : SMALLROWS;
 	short numberOfCols = (toupper(size) == 'L') ? LARGECOLS : SMALLCOLS;
-	// your code goes here ...
 
-	// replace the return value
+	// Get ship position
+	const ShipInfo ship = player.m_ships[shipNumber];
+	const short shpSize = shipSize[ship.m_name];
+	const Cell bow = ship.m_bowLocation;
+	const Direction orientation = ship.m_orientation;
+	
+	// Check for an out of bounds ship
+	if (bow.m_col > numberOfCols || bow.m_col < 0) return false;
+	if (bow.m_row > numberOfRows || bow.m_row < 0) return false;
+
+	// Check ship position exceeds grid size
+	if (orientation == HORIZONTAL && bow.m_col + shpSize < numberOfCols) return false;
+	else if (orientation == VERTICAL && bow.m_row + shpSize < numberOfRows) return false;
+
+	// This ship location is valid
 	return true;
 }
 
