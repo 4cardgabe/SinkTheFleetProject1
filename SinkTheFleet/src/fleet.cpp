@@ -288,8 +288,10 @@ void printShip(ostream & sout, Ship thisShip)
 //---------------------------------------------------------------------------------
 void printGrid(ostream& sout, Ship** grid, char size)
 {
-	short numberOfRows = (toupper(size) == 'L') ? LARGEROWS : SMALLROWS;
-	short numberOfCols = (toupper(size) == 'L') ? LARGECOLS : SMALLCOLS;
+	const bool isLarge = toupper(size) == 'L';
+
+	short numberOfRows = (isLarge) ? LARGEROWS : SMALLROWS;
+	short numberOfCols = (isLarge) ? LARGECOLS : SMALLCOLS;
 
 	sout << numberOfCols << endl << numberOfRows << endl;
 	for(short j = 1; j <= numberOfCols; ++j)
@@ -304,18 +306,23 @@ void printGrid(ostream& sout, Ship** grid, char size)
 
 		for (short k = 1; k <= numberOfCols; ++k)
 		{
-			sout << " x" << VERT;
+			
+			sout << " ";
+			printShip(sout, grid[k][c]);
+			sout << VERT;
 			//sout << HORIZ << HORIZ << HORIZ << VERT;
 		}
 		sout << endl;
-		if (LARGEROWS) {
+		if (isLarge)
+		{
 			sout << HORIZ;
 			printLargeRow(sout);
 		}
-		else if (SMALLROWS)
-			sout << "________" << endl;
-		
-
+		else if (!isLarge)
+		{
+			sout << HORIZ;
+			printSmallRow(sout);
+		}
 	}
 
 	// use printShip for each element in the grid
@@ -327,6 +334,14 @@ void printLargeRow(ostream& sout) {
 	}
 	sout << endl;
 }
+
+void printSmallRow(ostream& sout) {
+	for (int i = 0; i < 12; i++) {
+		sout << HORIZ << HORIZ << CR;
+	}
+	sout << endl;
+}
+
 
 //---------------------------------------------------------------------------------
 // Function:	initializePlayer()

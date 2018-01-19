@@ -106,7 +106,7 @@ int main(void)
 			gameOver = true;
 
 			// new code GB 1/16/18
-			printGrid(cout, *game->m_gameGrid,gridSize);
+			//setships(game, gridSize, whichPlayer);
 			whichPlayer = !whichPlayer;  // switch players
 		}
 		// clean up memory ...

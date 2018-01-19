@@ -104,6 +104,8 @@ void printShip(ostream & sout, Ship thisShip);
 void printGrid(ostream& sout, Ship** grid, char size); 
 
 void printLargeRow(ostream& sout);
+void printSmallRow(ostream& sout);
+
 //----------------------------------------------------------------------------
 // function prototypes for ShipInfo
 //----------------------------------------------------------------------------
