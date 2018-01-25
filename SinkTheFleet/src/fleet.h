@@ -103,9 +103,7 @@ void printShip(ostream & sout, Ship thisShip);
 //  prints a specific game grid
 void printGrid(ostream& sout, Ship** grid, char size); 
 
-void printLargeRow(ostream& sout);
-void printSmallRow(ostream& sout);
-
+void printRow(ostream& sout, short columns);
 //----------------------------------------------------------------------------
 // function prototypes for ShipInfo
 //----------------------------------------------------------------------------

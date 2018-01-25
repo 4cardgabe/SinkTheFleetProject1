@@ -229,7 +229,6 @@ void deleteMem(Player players[], char size)
 //---------------------------------------------------------------------------------
 void printShip(ostream & sout, Ship thisShip)
 {	
-	sout << ' ' ;
 	switch(thisShip)
 	{
 		case NOSHIP: sout << ' ';
@@ -250,7 +249,17 @@ void printShip(ostream & sout, Ship thisShip)
 			break;
 		default: sout << 'X';
 	}
-	sout << VERT ;
+}
+
+Ship getShip(char ship) {
+	switch (ship) {
+	case 'M': return Ship::MINESWEEPER;
+		case 'S': return Ship::SUB;
+		case 'F': return Ship::FRIGATE;
+		case 'B': return Ship::BATTLESHIP;
+		case 'C': return Ship::CARRIER;
+		default: return Ship::NOSHIP;
+	}
 }
 
 //---------------------------------------------------------------------------------
@@ -289,59 +298,39 @@ void printShip(ostream & sout, Ship thisShip)
 void printGrid(ostream& sout, Ship** grid, char size)
 {
 	const bool isLarge = toupper(size) == 'L';
-
 	short numberOfRows = (isLarge) ? LARGEROWS : SMALLROWS;
 	short numberOfCols = (isLarge) ? LARGECOLS : SMALLCOLS;
-
-	sout << numberOfCols << endl << numberOfRows << endl;
-	for(short j = 1; j <= numberOfCols; ++j)
+	Ship ship;
+	// Print column numbers
+	for (short j = 1; j <= numberOfCols; ++j) {
 		sout << setw(3) << j;
+	}
 	sout  << endl;
-	// your code goes here ...
 	
-	// new code GB 1/16/18
-	for (short c = 1; c <= numberOfRows; ++c)
+	for (short x = 0; x < numberOfRows; ++x)
 	{
-		sout << char(c + 64);
-
-		for (short k = 1; k <= numberOfCols; ++k)
+		sout << char(x + 65);
+		for (short y = 0; y < numberOfCols; ++y)
 		{
-			
 			sout << " ";
-			printShip(sout, grid[k][c]);
+			ship = grid[x][y] == NULL ? Ship::NOSHIP : grid[x][y];
+			printShip(sout, ship);
 			sout << VERT;
-			//sout << HORIZ << HORIZ << HORIZ << VERT;
 		}
 		sout << endl;
-		if (isLarge)
-		{
-			sout << HORIZ;
-			printLargeRow(sout);
-		}
-		else if (!isLarge)
-		{
-			sout << HORIZ;
-			printSmallRow(sout);
-		}
-	}
 
-	// use printShip for each element in the grid
+		// Print Row Separators 
+		printRow(sout, numberOfCols);
+	}
 } 
 
-void printLargeRow(ostream& sout) {
-	for (int i = 0; i < 24; i++) {
+void printRow(ostream& sout, short columns) {
+	sout << HORIZ;
+	for (int i = 0; i < columns; i++) {
 		sout << HORIZ << HORIZ << CR;
 	}
 	sout << endl;
 }
-
-void printSmallRow(ostream& sout) {
-	for (int i = 0; i < 12; i++) {
-		sout << HORIZ << HORIZ << CR;
-	}
-	sout << endl;
-}
-
 
 //---------------------------------------------------------------------------------
 // Function:	initializePlayer()
@@ -417,55 +406,66 @@ void initializePlayer(Player* playerPtr)
 //---------------------------------------------------------------------------------
 void setships(Player players[], char size, short whichPlayer)
 {
-	char input = 'V';
-	char ok = 'Y';
-	char save = 'N';
+	// Player data
+	Ship** shipGrid = players[whichPlayer].m_gameGrid[0];
+	ShipInfo playerShip;
+	Direction shipOrientation;
+	Cell shipBowLocation = { 0, 0 };
+
 	ostringstream outSStream;
-	Cell location = {0, 0};
-	for(short j = 1; j < SHIP_SIZE_ARRAYSIZE; j++)
+
+	// Refresh console
+	system("cls");
+	printGrid(cout, players[whichPlayer].m_gameGrid[0], size);
+
+	// Iterate through every ship
+	for(short shipIndex = 1; shipIndex < SHIP_SIZE_ARRAYSIZE; shipIndex++)
 	{
-		system("cls");
-		printGrid(cout, players[whichPlayer].m_gameGrid[0], size);
 		outSStream.str("");
-		outSStream << "Player " << whichPlayer + 1 << " Enter " << shipNames[j] << " orientation";
+		outSStream << "Player " << whichPlayer + 1 << " Enter " << shipNames[shipIndex] << " orientation";
 
-		// Get ship orientation from 
-		input =  safeChoice(outSStream.str(), 'V', 'H');
-		players[whichPlayer].m_ships[j].m_orientation = (input == 'V') ? VERTICAL : HORIZONTAL;
+		// Create the ship
+		playerShip = ShipInfo();
+		playerShip.m_name = Ship(shipIndex);
+		playerShip.m_piecesLeft = shipSize[shipIndex];
 
-		// Get bow location from user
-		cout << "Player " << whichPlayer + 1 << " Enter " << shipNames[j] << " bow coordinates <row letter><col #>: ";
-		players[whichPlayer].m_ships[j].m_bowLocation = location = getCoord(cin, size);
+		// Set the ship orientation 
+		const char input =  safeChoice(outSStream.str(), 'V', 'H');
+		playerShip.m_orientation = shipOrientation = (input == 'V') ? VERTICAL : HORIZONTAL;
 
-		// Check if cell is valid
-		if(!isValidLocation(players[whichPlayer], j, size))
+		// Set the ship bow location
+		cout << "Player " << whichPlayer + 1 << " Enter " << shipNames[shipIndex] << " bow coordinates <row letter><col #>: ";
+		playerShip.m_bowLocation = shipBowLocation = getCoord(cin, size);
+
+		players[whichPlayer].m_ships[shipIndex] = playerShip;
+
+		// Check if ship location is valid
+		if(!isValidLocation(players[whichPlayer], shipIndex, size))
 		{
 			cout << "invalid location. Press <enter>" ;
 			cin.get();
-			j--; // redo
+			shipIndex--; // redo
 			continue;
 		}
 
 		// Place the ship in the grid
-		Ship** shipGrid = players[whichPlayer].m_gameGrid[0];
-		ShipInfo ship = players[whichPlayer].m_ships[j];
-
-		for (int i = 0; i < shipSize[ship.m_name]; i++) 
+		for (int i = 0; i < shipSize[shipIndex]; i++) 
 		{
-			if (ship.m_orientation == VERTICAL) 
+			if (shipOrientation == VERTICAL)
 			{
-				shipGrid[ship.m_bowLocation.m_row + i][ship.m_bowLocation.m_col];
+				shipGrid[shipBowLocation.m_row + i][shipBowLocation.m_col] = playerShip.m_name;
 			}
-			else if (ship.m_orientation == HORIZONTAL) 
+			else if (shipOrientation == HORIZONTAL)
 			{
-				shipGrid[ship.m_bowLocation.m_row][ship.m_bowLocation.m_col + 1];
+				shipGrid[shipBowLocation.m_row][shipBowLocation.m_col + i] = playerShip.m_name;
 			}
 		}
+		system("cls");
+		printGrid(cout, players[whichPlayer].m_gameGrid[0], size);
 	} 
 	// Save the grid
-	save = safeChoice("\nSave starting grid?", 'Y', 'N');
-	if(save == 'Y')
-		saveGrid(players, whichPlayer, size);
+	const char save = safeChoice("\nSave starting grid?", 'Y', 'N');
+	if(save == 'Y') saveGrid(players, whichPlayer, size);
 }
 
 //---------------------------------------------------------------------------------
@@ -501,10 +501,27 @@ void setships(Player players[], char size, short whichPlayer)
 //---------------------------------------------------------------------------------
 void saveGrid(Player players[], short whichPlayer, char size)
 {
-	short numberOfRows = (toupper(size) == 'L') ? LARGEROWS : SMALLROWS;
-	short numberOfCols = (toupper(size) == 'L') ? LARGECOLS : SMALLCOLS;	
-	// YOUR CODE GOES HERE ...
-	
+	bool isLargeGrid = toupper(size) == 'L';
+	short numberOfRows = isLargeGrid ? LARGEROWS : SMALLROWS;
+	short numberOfCols = isLargeGrid ? LARGECOLS : SMALLCOLS;
+	ofstream gameFile = ofstream("game.txt");
+	Ship **playerGrid;
+
+
+	// Don't try to save data if file didn't open.
+	if (!gameFile) return;
+
+	// Save the grid for every player
+	playerGrid = players[whichPlayer].m_gameGrid[0];
+
+	for (short x = 0; x < numberOfRows; x++) {
+		for (short y = 0; y < numberOfCols; y++) {
+			printShip(gameFile, playerGrid[x][y]);
+		}
+	}
+
+	gameFile.close();
+	cout << "Wrote file to game.txt" << endl;
 }
 
 //---------------------------------------------------------------------------------
@@ -545,25 +562,30 @@ void saveGrid(Player players[], short whichPlayer, char size)
 //---------------------------------------------------------------------------------
 bool loadGridFromFile(Player players[], short whichPlayer, char size, string fileName)
 {
-	string line;
-	ifstream ifs;
+	ifstream gameFile;
+	Ship** playerGrid;
 	Ship ship = NOSHIP;
-	short shipCount[SHIP_SIZE_ARRAYSIZE] = {0};
-	char cell = ' ';
-	char fsize = 'S';
-	short numberOfRows = (toupper(size) == 'L') ? LARGEROWS : SMALLROWS;
-	short numberOfCols = (toupper(size) == 'L') ? LARGECOLS : SMALLCOLS;
+	bool isLargeGrid = toupper(size) == 'L';
+	short numberOfRows = isLargeGrid ? LARGEROWS : SMALLROWS;
+	short numberOfCols = isLargeGrid ? LARGECOLS : SMALLCOLS;
 
 	try
 	{
-		ifs.open(fileName.c_str());
-		if(!ifs)
-		{
-			cout << "could not open file " << fileName << endl
-				<< " press <enter> to continue" << endl;
-			cin.ignore(FILENAME_MAX, '\n');
-			return false;
-		}
+		// Open game file
+		gameFile.open(fileName.c_str());
+		if(!gameFile) throw new exception();
+
+		do {
+			playerGrid = players[whichPlayer].m_gameGrid[0];
+			for (short r = 0; r < numberOfRows; r++) {
+				for (short c = 0; c < numberOfCols; c++) {
+					playerGrid[r][c] = getShip(gameFile.get());
+				}
+			}
+		} while (gameFile.peek() != EOF);
+
+		printGrid(cout, playerGrid, size);
+		return true;
 	}
 	catch(exception e)
 	{
@@ -572,10 +594,6 @@ bool loadGridFromFile(Player players[], short whichPlayer, char size, string fil
 		cin.ignore(FILENAME_MAX, '\n');
 		return false;
 	}	
-	// YOUR CODE GOES HERE ...
-	
-
-	return true;
 }
 
 //---------------------------------------------------------------------------------
@@ -681,7 +699,7 @@ bool isValidLocation(const Player& player, short shipNumber, char size)
 
 	// Get ship position
 	const ShipInfo ship = player.m_ships[shipNumber];
-	const short shpSize = shipSize[ship.m_name];
+	const short shpSize = shipSize[shipNumber];
 	const Cell bow = ship.m_bowLocation;
 	const Direction orientation = ship.m_orientation;
 	
@@ -690,8 +708,8 @@ bool isValidLocation(const Player& player, short shipNumber, char size)
 	if (bow.m_row > numberOfRows || bow.m_row < 0) return false;
 
 	// Check ship position exceeds grid size
-	if (orientation == HORIZONTAL && bow.m_col + shpSize < numberOfCols) return false;
-	else if (orientation == VERTICAL && bow.m_row + shpSize < numberOfRows) return false;
+	if (orientation == HORIZONTAL && bow.m_col + shpSize > numberOfCols) return false;
+	else if (orientation == VERTICAL && bow.m_row + shpSize > numberOfRows) return false;
 
 	// This ship location is valid
 	return true;

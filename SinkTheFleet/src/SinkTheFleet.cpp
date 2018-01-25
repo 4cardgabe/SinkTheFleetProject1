@@ -88,9 +88,10 @@ int main(void)
 		
 		initializePlayer(game);		
 		initializePlayer(game + 1);
-		// dynamically create the rows of the array
+
 		allocMem(game, gridSize);
-		
+		loadGridFromFile(game, 0, gridSize, "game.txt");
+		//setships(game, gridSize, 0);
 		// YOUR CODE GOES HERE ...
 
 
