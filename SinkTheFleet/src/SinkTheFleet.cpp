@@ -24,7 +24,7 @@ extern const char* shipNames[7];
 // Description:
 //				Runs the Sink the Fleet Game
 // Programmer:	Paul Bladek
-// modified by:
+// modified by: Ethan Lindemann and Gabe Blumenthal
 // 
 // Date:		12/9/2010
 //

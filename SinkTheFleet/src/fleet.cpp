@@ -71,7 +71,7 @@ void setShipInfo(ShipInfo * shipInfoPtr, Ship name, Direction orientation,
 // Description:
 //		allocates memory for current grids
 // Programmer:	Paul Bladek
-// modified by:	
+// modified by: Ethan Lindemann and Gabe Blumenthal
 // 
 // Date:	9/13/06
 //
@@ -191,10 +191,7 @@ void deleteMem(Player players[], char size)
 				delete[] players[i].m_gameGrid[whichGrid];
 			}
 		}
-
 	}
-	
-
 }
 
 //---------------------------------------------------------------------------------
@@ -248,17 +245,6 @@ void printShip(ostream & sout, Ship thisShip)
 		case MISSED: sout << MISS;
 			break;
 		default: sout << 'X';
-	}
-}
-
-Ship getShip(char ship) {
-	switch (ship) {
-	case 'M': return Ship::MINESWEEPER;
-		case 'S': return Ship::SUB;
-		case 'F': return Ship::FRIGATE;
-		case 'B': return Ship::BATTLESHIP;
-		case 'C': return Ship::CARRIER;
-		default: return Ship::NOSHIP;
 	}
 }
 
@@ -320,17 +306,13 @@ void printGrid(ostream& sout, Ship** grid, char size)
 		sout << endl;
 
 		// Print Row Separators 
-		printRow(sout, numberOfCols);
+		sout << HORIZ;
+		for (int i = 0; i < numberOfCols; i++) {
+			sout << HORIZ << HORIZ << CR;
+		}
+		sout << endl;
 	}
 } 
-
-void printRow(ostream& sout, short columns) {
-	sout << HORIZ;
-	for (int i = 0; i < columns; i++) {
-		sout << HORIZ << HORIZ << CR;
-	}
-	sout << endl;
-}
 
 //---------------------------------------------------------------------------------
 // Function:	initializePlayer()
@@ -373,7 +355,7 @@ void initializePlayer(Player* playerPtr)
 // Description:
 //		Allows user to put ships in grid
 // Programmer:	Paul Bladek
-// modified by:	
+// modified by:	Ethan Lindemann and Gabe Blumenthal
 // 
 // Date:	9/12/06
 //
@@ -511,7 +493,9 @@ void saveGrid(Player players[], short whichPlayer, char size)
 	short numberOfCols = isLargeGrid ? LARGECOLS : SMALLCOLS;
 
 	// Open file
-	ofstream gameFile = ofstream("game.txt");
+	stringstream gameFilename(""); 
+	gameFilename << "player" << (whichPlayer + 1) << "grid" << ".txt";
+	ofstream gameFile = ofstream(gameFilename.str());
 	if (!gameFile) return;
 
 	// Grab players game grid
@@ -529,7 +513,7 @@ void saveGrid(Player players[], short whichPlayer, char size)
 
 	// Close out the file
 	gameFile.close();
-	cout << "Wrote file to game.txt" << endl;
+	cout << "Wrote file to " << gameFilename.str() << endl;
 }
 
 //---------------------------------------------------------------------------------
@@ -538,7 +522,7 @@ void saveGrid(Player players[], short whichPlayer, char size)
 // Description:
 //		Reads grid from a file and properly sets the ships
 // Programmer:	Paul Bladek
-// modified by:	
+// modified by:	Ethan Lindemann and Gabe Bru
 // 
 // Date:	9/12/06
 //
@@ -582,42 +566,35 @@ bool loadGridFromFile(Player players[], short whichPlayer, char size, string fil
 	// Grab players game grid
 	Ship** playerGrid = players[whichPlayer].m_gameGrid[0];
 
-	try
+	// Open game file
+	ifstream gameFile(fileName.c_str());
+	if (!gameFile)
 	{
-		// Open game file
-		ifstream gameFile(fileName.c_str());
-		if(!gameFile) throw new exception();
-
-		// Check for valid file grid size
-		const char fileGridSize = toupper(static_cast<char>(gameFile.get()));
-		if (!(fileGridSize == 'L' || fileGridSize == 'S'))
-		{
-			gameFile.close();
-			return false;
-		};
-		if (fileGridSize != gridSize)
-		{
-			gameFile.close();
-			return false;
-		};
-
-		// Write the grid to a file
-		for (short x = 0; x < numberOfRows; x++) {
-			for (short y = 0; y < numberOfCols; y++) {
-				playerGrid[x][y] = static_cast<Ship>(gameFile.get() - '0');
-			}
-		}
-		
-		printGrid(cout, playerGrid, size);
-		return true;
-	}
-	catch(exception e)
-	{
-		cout << "could not open file " << fileName << endl
-			<< " press <enter> to continue" << endl;
+		cout << "Could not open file " << fileName << endl << "Press <enter> to continue" << endl;
 		cin.ignore(FILENAME_MAX, '\n');
 		return false;
 	}
+
+	// Check for valid file grid size
+	const char fileGridSize = toupper(static_cast<char>(gameFile.get()));
+	if (!(fileGridSize == 'L' || fileGridSize == 'S') || fileGridSize != gridSize)
+	{
+		gameFile.close();
+		cout << "Could not load file " << fileName << endl << "Press <enter> to continue" << endl;
+		cin.ignore(FILENAME_MAX, '\n');
+		return false;
+	};
+
+	// Write the grid to a file
+	for (short x = 0; x < numberOfRows; x++) {
+		for (short y = 0; y < numberOfCols; y++) {
+			playerGrid[x][y] = static_cast<Ship>(gameFile.get() - '0');
+		}
+	}
+		
+	gameFile.close();
+	printGrid(cout, playerGrid, size);
+	return true;
 }
 
 //---------------------------------------------------------------------------------
