@@ -394,10 +394,12 @@ void setships(Player players[], char size, short whichPlayer)
 	Direction shipOrientation;
 	Cell shipBowLocation = { 0, 0 };
 
+	ostringstream confirmation;
 	ostringstream outSStream;
 
 	// Refresh console
 	system("cls");
+	header(cout);
 	printGrid(cout, players[whichPlayer].m_gameGrid[0], size);
 
 	// Iterate through every ship
@@ -416,7 +418,7 @@ void setships(Player players[], char size, short whichPlayer)
 		playerShip.m_orientation = shipOrientation = (input == 'V') ? VERTICAL : HORIZONTAL;
 
 		// Set the ship bow location
-		cout << "Player " << whichPlayer + 1 << " Enter " << shipNames[shipIndex] << " bow coordinates <row letter><col #>: ";
+		cout << "Enter " << shipNames[shipIndex] << " bow coordinates. " << endl;
 		playerShip.m_bowLocation = shipBowLocation = getCoord(cin, size);
 
 		players[whichPlayer].m_ships[shipIndex] = playerShip;
@@ -443,7 +445,14 @@ void setships(Player players[], char size, short whichPlayer)
 			}
 		}
 		system("cls");
+		header(cout);
 		printGrid(cout, players[whichPlayer].m_gameGrid[0], size);
+		
+		// Confirm layout choice
+		confirmation.str("");
+		confirmation << "Is player " << (whichPlayer + 1) << "'s " << shipNames[shipIndex] << " location OK?";
+		const char okChoice = safeChoice(confirmation.str());
+		if (okChoice == 'N') shipIndex--;
 	} 
 	// Save the grid
 	const char save = safeChoice("\nSave starting grid?", 'Y', 'N');
@@ -494,7 +503,7 @@ void saveGrid(Player players[], short whichPlayer, char size)
 
 	// Open file
 	stringstream gameFilename(""); 
-	gameFilename << "player" << (whichPlayer + 1) << "grid" << ".txt";
+	gameFilename << "player" << (whichPlayer + 1) << "grid" << ".shp";
 	ofstream gameFile = ofstream(gameFilename.str());
 	if (!gameFile) return;
 
@@ -591,6 +600,12 @@ bool loadGridFromFile(Player players[], short whichPlayer, char size, string fil
 			playerGrid[x][y] = static_cast<Ship>(gameFile.get() - '0');
 		}
 	}
+
+	for (short s = 1; s < SHIP_SIZE_ARRAYSIZE; s++)
+	{
+		players[whichPlayer].m_ships[s].m_name = Ship(s);
+		players[whichPlayer].m_ships[s].m_piecesLeft = shipSize[s];
+	}
 		
 	gameFile.close();
 	printGrid(cout, playerGrid, size);
@@ -642,12 +657,12 @@ Cell getCoord(istream& sin, char size)
 	{
 		col = 0;
 		cout << "Row must be a letter from A to " << highChar 
-			<< " and column must be  from 1 to "  << numberOfCols << ": ";
+			<< " and column must be from 1 to "  << numberOfCols << ": ";
 		while((row = toupper(sin.get())) < 'A' || row  > highChar)
 		{
 			sin.ignore(FILENAME_MAX, '\n');
 			cout << "Row must be a letter from A to " << highChar 
-				<< " and column must be  from 1 to "  << numberOfCols << ": ";
+				<< " and column must be from 1 to "  << numberOfCols << ": ";
 		}
 		sin >> col;
 		if(!sin)
@@ -659,6 +674,34 @@ Cell getCoord(istream& sin, char size)
 	location.m_col = col - 1;
 	location.m_row = static_cast<short>(row - 'A');
 	return location;
+}
+
+bool testHit(Player* game, short currentPlayer, short enemyPlayer, Cell coord)
+{
+	Ship** currentGrid = game[currentPlayer].m_gameGrid[1];
+	Ship** enemyGrid = game[enemyPlayer].m_gameGrid[0];
+
+	bool isHit = enemyGrid[coord.m_row][coord.m_col] > Ship::NOSHIP && enemyGrid[coord.m_row][coord.m_col] < Ship::HIT;
+	currentGrid[coord.m_row][coord.m_col] = isHit ? Ship::HIT : Ship::MISSED;
+
+	if (isHit)
+	{
+		Ship shipHit = enemyGrid[coord.m_row][coord.m_col];
+		game[enemyPlayer].m_ships[shipHit].m_piecesLeft--;
+		game[enemyPlayer].m_piecesLeft--;
+	}
+
+	return isHit;
+}
+
+Ship sunkShip(Player* game, short player, Cell coord)
+{
+	Ship testShip = game[player].m_gameGrid[0][coord.m_row][coord.m_col];
+	if (testShip > Ship::NOSHIP && testShip < Ship::HIT)
+	{
+		return game[player].m_ships[testShip].m_piecesLeft <= 0 ? testShip : Ship::NOSHIP;
+	}
+	return Ship::NOSHIP;
 }
 
 //---------------------------------------------------------------------------------

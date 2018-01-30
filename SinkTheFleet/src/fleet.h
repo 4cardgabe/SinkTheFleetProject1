@@ -135,6 +135,12 @@ void setships(Player players[], char size, short whichPlayer);
 // returns a cell with coordinates set by user
 Cell getCoord(istream& sin, char size);
 
+// checks if the coordinates are a hit
+bool testHit(Player* player, short currentPlayer, short enemyPlayer, Cell coord);
+
+// checks if the ship is sunk
+Ship sunkShip(Player* game, short player, Cell coord);
+
 // can the ship go there?
 bool isValidLocation(const Player& player, short shipNumber, char size);
 	
